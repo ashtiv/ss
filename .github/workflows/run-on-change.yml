@@ -1,0 +1,39 @@
+name: Run Stock Prediction on File Change
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  run-stock-predictor:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.9'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install yfinance numpy pandas matplotlib scipy scikit-learn tensorflow joblib
+
+    - name: Run stock predictor script
+      run: python ss.py
+
+    - name: Upload results
+      uses: actions/upload-artifact@v4
+      with:
+        name: model-and-scalers
+        path: |
+          ultra_advanced_stock_model.keras
+          feature_scaler.pkl
+          reg_scaler.pkl
