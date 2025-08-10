@@ -475,7 +475,7 @@ def create_advanced_sequences(features, reg_target, cls_target, lookback):
 # MAIN FUNCTION
 # -------------------------
 def main():
-    ticker = "ESCORTS.NS"
+    ticker = "JSWSTEEL.NS"
     print(f"🚀 ULTRA-ADVANCED STOCK PREDICTOR 🚀")
     print(f"Fetching {TRAIN_YEARS} years of data for {ticker}...")
     
@@ -612,7 +612,7 @@ def main():
     )
 
     # Comprehensive evaluation
-    print("\n🎯 COMPREHENSIVE MODEL EVALUATION")
+    print("\n🎯 COMPREHENSIVE MODEL EVALUATION FOR STOCK PREDICTION OF " + ticker.upper() + " 🎯")
     print("=" * 50)
     
     predictions = model.predict(X_test, verbose=0)
