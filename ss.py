@@ -475,7 +475,7 @@ def create_advanced_sequences(features, reg_target, cls_target, lookback):
 # MAIN FUNCTION
 # -------------------------
 def main():
-    ticker = "UPL.NS"
+    ticker = "TIINDIA.NS"
     print(f"🚀 ULTRA-ADVANCED STOCK PREDICTOR 🚀")
     print(f"Fetching {TRAIN_YEARS} years of data for {ticker}...")
     
