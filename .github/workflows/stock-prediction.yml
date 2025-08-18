@@ -27,6 +27,4 @@ jobs:
         pip install yfinance numpy pandas scikit-learn tensorflow matplotlib scipy
 
     - name: Run stock prediction
-      run: |
-        ls -la
-        python stock_prediction.py ${{ github.event.inputs.ticker }}
+      run: python ss.py
