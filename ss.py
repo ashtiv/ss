@@ -78,11 +78,11 @@ np.random.seed(42)
 # -------------------------
 # ULTRA-ADVANCED CONFIG (OPTIMIZED FOR ACCURACY)
 # -------------------------
-LOOKBACK_DAYS = 60  # Optimized for 7-year training period
-EPOCHS = 200  # Sufficient training for convergence with 7 years
-BATCH_SIZE = 64  # Appropriate batch size for smaller dataset
+LOOKBACK_DAYS = 90  # Optimized for 1-year training period
+EPOCHS = 5  # Sufficient training for convergence with 7 years
+BATCH_SIZE = 16  # Appropriate batch size for smaller dataset
 LEARNING_RATE = 1e-4  # Slightly higher learning rate for faster convergence
-TRAIN_YEARS = 7  # Reduced to 7 years for more recent, relevant data
+TRAIN_YEARS = 1  # Reduced to 7 years for more recent, relevant data
 MODEL_SAVE_PATH = "ultra_advanced_stock_model_v2.keras"
 
 # Advanced loss configuration with adaptive weighting
@@ -92,11 +92,11 @@ LOSS_WEIGHTS = {
     "quantile_upper": 0.1,
     "quantile_lower": 0.1
 }
-VOLATILITY_WINDOW = 20  # Adjusted for 7-year data
+VOLATILITY_WINDOW = 20  # Adjusted for 1-year data
 CONFIDENCE_THRESHOLD = 0.15
 
 # Model architecture params (optimized for time series)
-LSTM_UNITS = [128, 96, 64]  # Adjusted for 7-year data
+LSTM_UNITS = [128, 96, 64]  # Adjusted for 1-year data
 ATTENTION_HEADS = 8  # Appropriate for dataset size
 DROPOUT_RATE = 0.2  # Slightly increased to prevent overfitting on smaller dataset
 L1_REG = 1e-5  # Regularization adjusted for smaller dataset
