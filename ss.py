@@ -475,7 +475,12 @@ def create_advanced_sequences(features, reg_target, cls_target, lookback):
 # MAIN FUNCTION
 # -------------------------
 def main():
-    ticker = "JSL.NS"
+    # Get ticker from command line argument or ask user
+    if len(sys.argv) > 1:
+        ticker = sys.argv[1]
+    else:
+        ticker = input("Enter stock ticker (e.g., SBI.NS): ")
+    
     print(f"🚀 ULTRA-ADVANCED STOCK PREDICTOR 🚀")
     print(f"Fetching {TRAIN_YEARS} years of data for {ticker}...")
     
@@ -612,7 +617,7 @@ def main():
     )
 
     # Comprehensive evaluation
-    print("\n🎯 COMPREHENSIVE MODEL EVALUATION FOR STOCK PREDICTION OF " + ticker.upper() + " 🎯")
+    print("\n🎯 COMPREHENSIVE MODEL EVALUATION")
     print("=" * 50)
     
     predictions = model.predict(X_test, verbose=0)
@@ -736,6 +741,21 @@ def main():
     print(f"🧠 Model Complexity: {model.count_params():,} parameters")
     print(f"🔬 Features Used: {len(feature_cols)}")
     print(f"⚡ Training Epochs: {len(history.history['loss'])}")
+    print("=" * 50)
+    
+    # ========================
+    # FINAL RESULTS SECTION
+    # ========================
+    print("\n📊 PREDICTION RESULTS:")
+    print("=" * 50)
+    print(f"📈 STOCK: {ticker}")
+    print(f"💰 CURRENT PRICE: ${last_close:.2f}")
+    print(f"🔮 PREDICTED PRICE: ${predicted_next_price:.2f}")
+    print(f"📊 PERCENT CHANGE: {final_reg*100:+.3f}%")
+    print(f"🧭 DIRECTION: {direction}")
+    print(f"🎖️ CONFIDENCE: {confidence_level} ({final_confidence:.3f})")
+    print(f"⚠️ RISK LEVEL: {risk_level}")
+    print(f"💡 TRADING SIGNAL: {signal}")
     print("=" * 50)
 
 if __name__ == "__main__":
