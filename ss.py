@@ -32,7 +32,6 @@ from sklearn.utils import class_weight
 from sklearn.ensemble import IsolationForest
 from sklearn.feature_selection import mutual_info_regression
 from sklearn.model_selection import TimeSeriesSplit
-from hmmlearn import hmm
 import tensorflow as tf
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import (Input, LSTM, Dense, Dropout, Bidirectional, 
@@ -45,13 +44,28 @@ from tensorflow.keras.regularizers import l1_l2
 from tensorflow.keras.initializers import Orthogonal
 import joblib
 import requests
-import fredapi
 
-# Handle talib import gracefully
+# Handle optional dependencies gracefully
+try:
+    from hmmlearn import hmm
+    HMM_AVAILABLE = True
+except ImportError:
+    print("⚠️ HMM not available. Regime detection will be simplified.")
+    HMM_AVAILABLE = False
+
+try:
+    import fredapi
+    FRED_AVAILABLE = True
+except ImportError:
+    print("⚠️ FRED API not available. Economic indicators will be skipped.")
+    FRED_AVAILABLE = False
+
 try:
     import talib
+    TALIB_AVAILABLE = True
 except ImportError:
-    print("⚠️ TA-Lib not available. Installing fallback functions...")
+    print("⚠️ TA-Lib not available. Using fallback implementations.")
+    TALIB_AVAILABLE = False
     talib = None
 
 # =========================
@@ -65,10 +79,10 @@ np.random.seed(42)
 # ULTRA-ADVANCED CONFIG (OPTIMIZED FOR ACCURACY)
 # -------------------------
 LOOKBACK_DAYS = 60  # Optimized for 7-year training period
-EPOCHS = 5  # Sufficient training for convergence with 7 years
+EPOCHS = 200  # Sufficient training for convergence with 7 years
 BATCH_SIZE = 64  # Appropriate batch size for smaller dataset
 LEARNING_RATE = 1e-4  # Slightly higher learning rate for faster convergence
-TRAIN_YEARS = 1  # Reduced to 7 years for more recent, relevant data
+TRAIN_YEARS = 7  # Reduced to 7 years for more recent, relevant data
 MODEL_SAVE_PATH = "ultra_advanced_stock_model_v2.keras"
 
 # Advanced loss configuration with adaptive weighting
