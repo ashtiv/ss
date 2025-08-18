@@ -28,4 +28,5 @@ jobs:
 
     - name: Run stock prediction
       run: |
+        ls -la
         python stock_prediction.py ${{ github.event.inputs.ticker }}
