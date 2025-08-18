@@ -21,10 +21,38 @@ jobs:
       with:
         python-version: '3.9'
 
-    - name: Install dependencies
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential wget
+
+    - name: Install TA-Lib
+      run: |
+        wget https://sourceforge.net/projects/ta-lib/files/ta-lib/0.4.0/ta-lib-0.4.0-src.tar.gz
+        tar -xzf ta-lib-0.4.0-src.tar.gz
+        cd ta-lib/
+        ./configure --prefix=/usr
+        make
+        sudo make install
+        cd ..
+        rm -rf ta-lib*
+
+    - name: Install Python dependencies
       run: |
         python -m pip install --upgrade pip
         pip install yfinance numpy pandas scikit-learn tensorflow matplotlib scipy
+        pip install hmmlearn fredapi talib-binary joblib requests
 
     - name: Run stock prediction
       run: python ss.py ${{ github.event.inputs.ticker }}
+
+    - name: Display Predictions
+      if: always()
+      run: |
+        echo "=== STOCK PREDICTION RESULTS ==="
+        echo "Ticker: ${{ github.event.inputs.ticker }}"
+        echo ""
+        echo "Prediction Summary:"
+        echo "Check the previous step output for detailed predictions"
+        echo ""
+        echo "=== END PREDICTION RESULTS ==="
