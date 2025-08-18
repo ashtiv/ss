@@ -1,39 +1,31 @@
-name: Run Stock Prediction on File Change
+name: Stock Prediction Workflow
 
 on:
-  push:
-    branches:
-      - master
-  pull_request:
-    branches:
-      - main
+  workflow_dispatch:
+    inputs:
+      ticker:
+        description: 'Stock Ticker Symbol (e.g., AAPL, TCS.NS)'
+        required: true
+        default: 'TCS.NS'
 
 jobs:
-  run-stock-predictor:
+  predict:
     runs-on: ubuntu-latest
-
+    
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v3
 
     - name: Set up Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v4
       with:
         python-version: '3.9'
 
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install yfinance numpy pandas matplotlib scipy scikit-learn tensorflow joblib
+        pip install yfinance numpy pandas scikit-learn tensorflow matplotlib scipy
 
-    - name: Run stock predictor script
-      run: python ss.py
-
-    - name: Upload results
-      uses: actions/upload-artifact@v4
-      with:
-        name: model-and-scalers
-        path: |
-          ultra_advanced_stock_model.keras
-          feature_scaler.pkl
-          reg_scaler.pkl
+    - name: Run stock prediction
+      run: |
+        python stock_prediction.py ${{ github.event.inputs.ticker }}
