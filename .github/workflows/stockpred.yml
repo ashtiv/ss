@@ -1,0 +1,30 @@
+name: Stock Prediction Workflow org
+
+on:
+  workflow_dispatch:
+    inputs:
+      ticker:
+        description: 'Stock Ticker Symbol (e.g., AAPL, TCS.NS)'
+        required: true
+        default: 'TCS.NS'
+
+jobs:
+  predict:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install yfinance numpy pandas scikit-learn tensorflow matplotlib scipy
+
+    - name: Run stock prediction
+      run: python ssorg.py ${{ github.event.inputs.ticker }}
