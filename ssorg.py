@@ -573,7 +573,7 @@ def main():
             mode='max', 
             patience=15, 
             restore_best_weights=True, 
-            verbose=1
+            verbose=0
         ),
         ReduceLROnPlateau(
             monitor='val_combined_score', 
@@ -581,14 +581,14 @@ def main():
             factor=0.7, 
             patience=8, 
             min_lr=1e-7, 
-            verbose=1
+            verbose=0
         ),
         ModelCheckpoint(
             MODEL_SAVE_PATH, 
             save_best_only=True, 
             monitor='val_combined_score', 
             mode='max', 
-            verbose=1
+            verbose=0
         ),
         advanced_metrics
     ]
@@ -612,7 +612,7 @@ def main():
         epochs=EPOCHS, 
         batch_size=BATCH_SIZE, 
         callbacks=callbacks,
-        verbose=1, 
+        verbose=0, 
         shuffle=False
     )
 
