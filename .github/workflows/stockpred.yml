@@ -2,16 +2,15 @@ name: Stock Prediction Workflow org
 
 on:
   workflow_dispatch:
-    inputs:
-      ticker:
-        description: 'Stock Ticker Symbol (e.g., AAPL, TCS.NS)'
-        required: true
-        default: 'TCS.NS'
 
 jobs:
   predict:
     runs-on: ubuntu-latest
-    
+    strategy:
+      fail-fast: false
+      matrix:
+        ticker: [ "TCS.NS", "INFY.NS", "RELIANCE.NS", "HDFCBANK.NS", "SBIN.NS", "ICICIBANK.NS", "AXISBANK.NS", "KOTAKBANK.NS", "WIPRO.NS", "HCLTECH.NS", "ITC.NS", "HINDUNILVR.NS", "LT.NS", "BAJFINANCE.NS","MARUTI.NS", "SUNPHARMA.NS", "TITAN.NS", "ULTRACEMCO.NS"] # 👈 add 18 tickers here
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
@@ -27,4 +26,4 @@ jobs:
         pip install yfinance numpy pandas scikit-learn tensorflow matplotlib scipy
 
     - name: Run stock prediction
-      run: python ssorg.py ${{ github.event.inputs.ticker }}
+      run: python ssorg.py ${{ matrix.ticker }}
