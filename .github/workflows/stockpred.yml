@@ -9,7 +9,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ticker: ['RELIANCE.NS', 'HDFCBANK.NS', 'ICICIBANK.NS', 'ITC.NS', 'ADANIPORTS.NS', 'ADANIPOWER.NS', 'DLF.NS', 'SBILIFE.NS', 'VBL.NS', 'PFC.NS', 'RECLTD.NS', 'ADANIENSOL.NS', 'INDIANB.NS', 'SUZLON.NS', 'ABCAPITAL.NS', 'LLOYDSME.NS', 'FORTIS.NS', 'PRESTIGE.NS', 'PATANJALI.NS', 'MOTILALOFS.NS', 'MFSL.NS', 'KALYANKJIL.NS', 'ITCHOTELS.NS', 'HEXT.NS', '360ONE.NS', 'COHANCE.NS', 'ASTERDM.NS', 'KIMS.NS', 'PPLPHARMA.NS', 'BRIGADE.NS', 'WELCORP.NS', 'AADHARHFC.NS', 'PNBHOUSING.NS', 'CROMPTON.NS', 'SAGILITY.NS', 'KARURVYSYA.NS', 'ONESOURCE.NS', 'CHALET.NS', 'ABREL.NS', 'BIKAJI.NS', 'SAILIFE.NS', 'ANANTRAJ.NS', 'CGCL.NS', 'VENTIVE.NS', 'TECHNOE.NS', 'TRITURBINE.NS', 'ATHERENERG.NS', 'AFCONS.NS', 'RAINBOW.NS', 'TBOTEK.NS', 'SIGNATURE.NS', 'TARIL.NS', 'THELEELA.NS', 'ABDL.NS', 'KIRLOSENG.NS', 'RRKABEL.NS', 'JINDALSAW.NS', 'GRAVITA.NS', 'CELLO.NS', 'ALIVUS.NS', 'LEMONTREE.NS', 'BALRAMCHIN.NS', 'TITAGARH.NS', 'GRANULES.NS', 'AZAD.NS', 'AETHER.NS', 'WABAG.NS', 'MEDPLUS.NS', 'BIRLACORPN.NS', 'INDIASHLTR.NS', 'JLHL.NS', 'TCI.NS', 'BECTORFOOD.NS', 'KIRLPNU.NS', 'RUSTOMJEE.NS', 'DODLA.NS', 'ARVIND.NS', 'EPL.NS', 'AKUMS.NS', 'MAXESTATES.NS', 'CHEMPLASTS.NS', 'ARVINDFASN.NS', 'CSBBANK.NS', 'MOIL.NS', 'KTKBANK.NS', 'AVL.NS', 'JUNIPER.NS', 'GULFOILLUB.NS', 'BANSALWIRE.NS', 'SUNTECK.NS', 'MASFIN.NS', 'SIS.NS', 'FEDFINA.NS', 'JKIL.NS', 'BALAMINES.NS', 'VRLLOG.NS', 'EMIL.NS', 'SAMHI.NS', 'AWFIS.NS', 'DCBBANK.NS', 'WONDERLA.NS', 'ORCHPHARMA.NS', 'MEDIASSIST.NS', 'GOCOLORS.NS', 'NEOGEN.NS', 'EPACK.NS', 'KOLTEPATIL.NS', 'ROSSARI.NS', 'GATEWAY.NS', 'FLAIR.NS', 'BAJAJCON.NS', 'JTLIND.NS', 'ARVSMART.NS', 'VENUSPIPES.NS', 'KRSNAA.NS', 'MOLDTKPAC.NS', 'YATRA.NS', 'STOVEKRAFT.NS', 'LAXMIDENTL.NS', 'UDS.NS']
+        ticker: [
+          'RELIANCE.NS','HDFCBANK.NS','ICICIBANK.NS','ITC.NS','ADANIPORTS.NS',
+          'ADANIPOWER.NS','DLF.NS','SBILIFE.NS','VBL.NS','PFC.NS',
+          'RECLTD.NS','ADANIENSOL.NS','INDIANB.NS','SUZLON.NS','ABCAPITAL.NS',
+          'LLOYDSME.NS','FORTIS.NS','PRESTIGE.NS','PATANJALI.NS','MOTILALOFS.NS'
+          # 👆 add more tickers in batches if needed
+        ]
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
@@ -25,4 +32,18 @@ jobs:
         pip install yfinance numpy pandas scikit-learn tensorflow matplotlib scipy
 
     - name: Run stock prediction
-      run: python ssorg.py ${{ matrix.ticker }}
+      id: predict
+      run: |
+        # Run the script and capture only the summary lines
+        python ssorg.py ${{ matrix.ticker }} > output.log
+
+        # Extract key lines (modify these greps to match your script’s prints)
+        acc=$(grep "Directional Accuracy" output.log | awk '{print $3}')
+        rmse=$(grep "RMSE" output.log | awk '{print $2}')
+        mae=$(grep "MAE" output.log | awk '{print $2}')
+        change=$(grep "PERCENT CHANGE" output.log | awk '{print $3}')
+        direction=$(grep "DIRECTION" output.log | awk '{print $3}')
+
+        # Append a one-line summary to GitHub step summary
+        echo "### 📊 ${matrix.ticker}" >> $GITHUB_STEP_SUMMARY
+        echo "🎯 Accuracy: $acc | 📈 RMSE: $rmse | 📉 MAE: $mae | Δ%: $change | 🧭 Dir: $direction" >> $GITHUB_STEP_SUMMARY
