@@ -1,4 +1,4 @@
-name: Stock Prediction Workflow Org
+name: Stock Prediction Workflow org
 
 on:
   workflow_dispatch:
@@ -9,7 +9,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ticker: [ 'RELIANCE.NS','HDFCBANK.NS','ICICIBANK.NS' ]
+        ticker: [ 'RELIANCE.NS','HDFCBANK.NS', 'ICICIBANK.NS' ]
 
     steps:
     - name: Checkout code
@@ -28,26 +28,16 @@ jobs:
     - name: Run stock prediction
       id: predict
       run: |
-        # Run script and capture logs
-        python ssorg.py ${{ matrix.ticker }} > output.log 2>&1
+        # Run the script and capture only the summary lines
+        python ssorg.py ${{ matrix.ticker }} > output.log
 
-        echo "---- OUTPUT LOG ----"
-        cat output.log
-        echo "-------------------"
-
-        # Extract values (update patterns if your script prints differently)
+        # Extract key lines (modify these greps to match your script’s prints)
         acc=$(grep "Directional Accuracy" output.log | awk '{print $3}')
         rmse=$(grep "RMSE" output.log | awk '{print $2}')
         mae=$(grep "MAE" output.log | awk '{print $2}')
         change=$(grep "PERCENT CHANGE" output.log | awk '{print $3}')
         direction=$(grep "DIRECTION" output.log | awk '{print $3}')
 
-        # Add to summary
-        {
-          echo "### 📊 ${matrix.ticker}"
-          echo "🎯 Accuracy: ${acc:-N/A}"
-          echo "📈 RMSE: ${rmse:-N/A}"
-          echo "📉 MAE: ${mae:-N/A}"
-          echo "Δ%: ${change:-N/A}"
-          echo "🧭 Dir: ${direction:-N/A}"
-        } >> $GITHUB_STEP_SUMMARY
+        # Append a one-line summary to GitHub step summary
+        echo "### 📊 ${{ matrix.ticker }}" >> $GITHUB_STEP_SUMMARY
+        echo "🎯 Accuracy: $acc | 📈 RMSE: $rmse | 📉 MAE: $mae | Δ%: $change | 🧭 Dir: $direction" >> $GITHUB_STEP_SUMMARY
