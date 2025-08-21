@@ -47,10 +47,10 @@ tf.keras.utils.set_random_seed(42)
 # ENHANCED CONFIG
 # -------------------------
 LOOKBACK_DAYS = 60  # Reduced for better learning
-EPOCHS = 5
+EPOCHS = 200
 BATCH_SIZE = 64
 LEARNING_RATE = 1e-4
-TRAIN_YEARS = 1  # More data
+TRAIN_YEARS = 7  # More data
 MODEL_SAVE_PATH = "ultra_advanced_stock_model.keras"
 
 # Advanced loss configuration
