@@ -9,13 +9,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ticker: [
-          'RELIANCE.NS','HDFCBANK.NS','ICICIBANK.NS','ITC.NS','ADANIPORTS.NS',
-          'ADANIPOWER.NS','DLF.NS','SBILIFE.NS','VBL.NS','PFC.NS',
-          'RECLTD.NS','ADANIENSOL.NS','INDIANB.NS','SUZLON.NS','ABCAPITAL.NS',
-          'LLOYDSME.NS','FORTIS.NS','PRESTIGE.NS','PATANJALI.NS','MOTILALOFS.NS'
-          # 👆 add more tickers in batches if needed
-        ]
+        ticker: [ 'RELIANCE.NS','HDFCBANK.NS','ICICIBANK.NS' ]
 
     steps:
     - name: Checkout code
