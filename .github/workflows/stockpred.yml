@@ -9,8 +9,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ticker: [ 'RELIANCE.NS','HDFCBANK.NS',
-        'ICICIBANK.NS' ]
+        ticker: [ 'RELIANCE.NS','HDFCBANK.NS', 'ICICIBANK.NS' ]
 
     steps:
     - name: Checkout code
