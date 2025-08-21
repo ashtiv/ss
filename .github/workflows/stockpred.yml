@@ -39,5 +39,5 @@ jobs:
         direction=$(grep "DIRECTION" output.log | awk '{print $3}')
 
         # Append a one-line summary to GitHub step summary
-        echo "### 📊 ${matrix.ticker}" >> $GITHUB_STEP_SUMMARY
+        echo "### 📊 ${{ matrix.ticker }}" >> $GITHUB_STEP_SUMMARY
         echo "🎯 Accuracy: $acc | 📈 RMSE: $rmse | 📉 MAE: $mae | Δ%: $change | 🧭 Dir: $direction" >> $GITHUB_STEP_SUMMARY
