@@ -28,16 +28,16 @@ jobs:
     - name: Run stock prediction
       id: predict
       run: |
-        # Run the script and capture only the summary lines
+        # Run the script and capture the output
         python ssorg.py ${{ matrix.ticker }} > output.log
 
-        # Extract key lines (modify these greps to match your script’s prints)
-        acc=$(grep "Directional Accuracy" output.log | awk '{print $3}')
-        rmse=$(grep "RMSE" output.log | awk '{print $2}')
-        mae=$(grep "MAE" output.log | awk '{print $2}')
-        change=$(grep "PERCENT CHANGE" output.log | awk '{print $3}')
-        direction=$(grep "DIRECTION" output.log | awk '{print $3}')
+        # Extract values using more precise grep patterns
+        acc=$(grep "Directional Accuracy:" output.log | awk -F': ' '{print $2}' | tr -d '%')
+        rmse=$(grep "RMSE:" output.log | awk -F': ' '{print $2}')
+        mae=$(grep "MAE:" output.log | awk -F': ' '{print $2}')
+        change=$(grep "PERCENT CHANGE:" output.log | awk -F': ' '{print $2}' | tr -d '%')
+        direction=$(grep "DIRECTION:" output.log | awk -F': ' '{print $2}')
 
-        # Append a one-line summary to GitHub step summary
+        # Append formatted summary to GitHub step summary
         echo "### 📊 ${{ matrix.ticker }}" >> $GITHUB_STEP_SUMMARY
-        echo "🎯 Accuracy: $acc | 📈 RMSE: $rmse | 📉 MAE: $mae | Δ%: $change | 🧭 Dir: $direction" >> $GITHUB_STEP_SUMMARY
+        echo "🎯 Accuracy: ${acc}% | 📈 RMSE: ${rmse} | 📉 MAE: ${mae} | Δ%: ${change}% | 🧭 Dir: ${direction}" >> $GITHUB_STEP_SUMMARY
