@@ -8,8 +8,8 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        symbol: ['RELIANCE.NS', 'HDFCBANK.NS', 'ICICIBANK.NS', 'ITC.NS', 'ETERNAL.NS', 'ADANIPORTS.NS', 'ADANIPOWER.NS', 'DLF.NS', 'SBILIFE.NS', 'VBL.NS', 'PFC.NS', 'RECLTD.NS', 'ADANIENSOL.NS', 'INDIANB.NS', 'SUZLON.NS', 'ABCAPITAL.NS', 'LLOYDSME.NS', 'FORTIS.NS', 'PRESTIGE.NS', 'GVT&D.NS', 'PATANJALI.NS', 'MFSL.NS', 'MOTILALOFS.NS', 'KALYANKJIL.NS', 'ITCHOTELS.NS', 'HEXT.NS', '360ONE.NS', 'COHANCE.NS', 'ASTERDM.NS', 'KIMS.NS', 'PPLPHARMA.NS', 'BRIGADE.NS', 'WELCORP.NS', 'TIMKEN.NS', 'CHALET.NS', 'AADHARHFC.NS', 'SAGILITY.NS', 'ONESOURCE.NS', 'PNBHOUSING.NS', 'KARURVYSYA.NS', 'CROMPTON.NS', 'ABREL.NS', 'BIKAJI.NS', 'SAILIFE.NS', 'ANANTRAJ.NS', 'CGCL.NS', 'TECHNOE.NS', 'VENTIVE.NS', 'RATNAMANI.NS', 'TRITURBINE.NS', 'RAINBOW.NS', 'SIGNATURE.NS', 'TBOTEK.NS', 'AFCONS.NS', 'ATHERENERG.NS', 'DOMS.NS', 'TARIL.NS', 'ABDL.NS', 'THELEELA.NS', 'KIRLOSENG.NS', 'RRKABEL.NS', 'LEMONTREE.NS', 'JINDALSAW.NS', 'GRAVITA.NS', 'CELLO.NS', 'ALIVUS.NS', 'BALRAMCHIN.NS', 'TITAGARH.NS', 'GRANULES.NS', 'AZAD.NS', 'AETHER.NS', 'BIRLACORPN.NS', 'WABAG.NS', 'MEDPLUS.NS', 'INDIASHLTR.NS', 'ASTRAMICRO.NS', 'JLHL.NS', 'TCI.NS', 'BECTORFOOD.NS', 'KIRLPNU.NS', 'RUSTOMJEE.NS', 'DODLA.NS', 'ARVIND.NS', 'EPL.NS', 'AKUMS.NS', 'MAXESTATES.NS', 'CSBBANK.NS', 'CHEMPLASTS.NS', 'ARVINDFASN.NS', 'MOIL.NS', 'JUNIPER.NS', 'AVL.NS', 'THANGAMAYL.NS', 'KTKBANK.NS', 'GULFOILLUB.NS', 'BANSALWIRE.NS', 'SUNTECK.NS', 'MASFIN.NS', 'SIS.NS', 'FEDFINA.NS', 'EMIL.NS', 'JKIL.NS', 'BALAMINES.NS', 'VRLLOG.NS', 'SAMHI.NS', 'AWFIS.NS', 'WONDERLA.NS', 'ORCHPHARMA.NS', 'MEDIASSIST.NS', 'DCBBANK.NS', 'NEOGEN.NS', 'GOCOLORS.NS', 'KOLTEPATIL.NS', 'EPACK.NS', 'ROSSARI.NS', 'GATEWAY.NS', 'FLAIR.NS', 'BAJAJCON.NS', 'JTLIND.NS', 'ARVSMART.NS', 'VENUSPIPES.NS', 'MOLDTKPAC.NS', 'KRSNAA.NS', 'YATRA.NS', 'STOVEKRAFT.NS', 'LAXMIDENTL.NS', 'UDS.NS']
-        
+        symbol: ['RELIANCE.NS', 'HDFCBANK.NS']
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -24,51 +24,39 @@ jobs:
           python -m pip install --upgrade pip
           pip install yfinance pandas numpy scikit-learn lightgbm optuna
 
-      - name: Run stock prediction
+      - name: Run stock prediction and collect summary
         id: predict
         continue-on-error: true
         run: |
           echo "📈 Running prediction for ${{ matrix.symbol }}..."
-          python pred_optimized.py ${{ matrix.symbol }} > output.txt || true
+          # Run the script and capture output
+          output=$(python pred_optimized.py ${{ matrix.symbol }} 2>&1)
           
-          # Extract the ✅ summary line or fallback
-          summary_line=$(grep "✅ ${{ matrix.symbol }}" output.txt || echo "❌ ${{ matrix.symbol }} failed or no summary")
+          # Extract ✅ line or show failure
+          summary=$(echo "$output" | grep "✅ ${{ matrix.symbol }}" || echo "❌ ${{ matrix.symbol }} failed or no data")
           
-          # Save as .txt file for consistency
-          echo "$summary_line" > summary-${{ matrix.symbol }}.txt
-          
-          echo "Summary for ${{ matrix.symbol }}:"
-          cat summary-${{ matrix.symbol }}.txt
+          # Print immediately
+          echo "$summary"
 
-      - name: Upload summary artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: summary-${{ matrix.symbol }}.txt
-          path: summary-${{ matrix.symbol }}.txt
+          # Save to a temp file for later aggregation
+          echo "$summary" >> /home/runner/summary_all.txt
 
   summary_report:
     needs: run_stock
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Download all summary artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: summaries
-
-      - name: Display Combined Summary
+      - name: Retrieve combined summary
         run: |
-          echo "📊 Combined Stock Prediction Summary:"
-          # Match .txt files
-          for file in summaries/summary-*/*.txt; do
-            if [ -f "$file" ]; then
-              cat "$file"
-            fi
-          done
-
-          # Fallback if no files
-          if ! compgen -G "summaries/summary-*/*.txt" > /dev/null; then
-            echo "❌ No summaries found"
+          echo "=================================================="
+          echo "📊 FINAL COMBINED STOCK PREDICTION SUMMARY"
+          echo "=================================================="
+          
+          # Check if the file exists and print it
+          if [ -f "/home/runner/summary_all.txt" ]; then
+            cat /home/runner/summary_all.txt
+          else
+            echo "❌ No predictions were completed."
           fi
+
+          echo "=================================================="
+          echo "✅ Summary complete."
