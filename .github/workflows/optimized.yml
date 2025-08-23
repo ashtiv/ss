@@ -25,14 +25,14 @@ jobs:
 
       - name: Run stock prediction
         id: predict
+        continue-on-error: true  # prevent workflow stop if a stock fails
         run: |
-          python your_stock_script.py ${{ matrix.symbol }} > output.txt
-          # Extract the summary line
-          summary_line=$(grep -E "✅.*" output.txt || echo "No summary")
+          python your_stock_script.py ${{ matrix.symbol }} > output.txt || true
+          summary_line=$(grep -E "✅.*" output.txt || echo "❌ ${matrix.symbol} failed")
           echo "$summary_line" > summary.txt
 
       - name: Upload summary artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: summary-${{ matrix.symbol }}
           path: summary.txt
@@ -45,7 +45,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Download all summaries
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           path: summaries
 
