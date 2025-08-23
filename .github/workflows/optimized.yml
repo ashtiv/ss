@@ -28,7 +28,7 @@ jobs:
         continue-on-error: true
         run: |
           echo "📈 Running prediction for ${{ matrix.symbol }}..."
-          python your_stock_script.py ${{ matrix.symbol }} > output.txt || true
+          python pred_optimized.py ${{ matrix.symbol }} > output.txt || true
           # Extract summary line or fallback
           summary_line=$(grep -E "✅.*" output.txt || echo "❌ ${{ matrix.symbol }} failed or no summary")
           echo "Summary for ${{ matrix.symbol }}:"
