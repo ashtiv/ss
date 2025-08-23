@@ -1,14 +1,17 @@
 name: Stock Prediction Summary Optimized
 
 on:
-  workflow_dispatch:  # Manual trigger
+  workflow_dispatch:
 
 jobs:
   run_stock:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        symbol: ['RELIANCE.NS', 'HDFCBANK.NS']
+        symbol: ['RELIANCE.NS', 'HDFCBANK.NS', 'ICICIBANK.NS', 'ITC.NS']  # Test with small list first
+
+    outputs:
+      summary: ${{ steps.predict.outputs.summary }}
 
     steps:
       - name: Checkout repository
@@ -24,39 +27,30 @@ jobs:
           python -m pip install --upgrade pip
           pip install yfinance pandas numpy scikit-learn lightgbm optuna
 
-      - name: Run stock prediction and collect summary
+      - name: Run stock prediction
         id: predict
         continue-on-error: true
         run: |
           echo "📈 Running prediction for ${{ matrix.symbol }}..."
-          # Run the script and capture output
           output=$(python pred_optimized.py ${{ matrix.symbol }} 2>&1)
-          
-          # Extract ✅ line or show failure
           summary=$(echo "$output" | grep "✅ ${{ matrix.symbol }}" || echo "❌ ${{ matrix.symbol }} failed or no data")
-          
-          # Print immediately
-          echo "$summary"
-
-          # Save to a temp file for later aggregation
-          echo "$summary" >> /home/runner/summary_all.txt
+          echo "Prediction result: $summary"
+          echo "::set-output name=summary::$summary"
 
   summary_report:
     needs: run_stock
     runs-on: ubuntu-latest
     steps:
-      - name: Retrieve combined summary
+      - name: Display Combined Summary
         run: |
           echo "=================================================="
           echo "📊 FINAL COMBINED STOCK PREDICTION SUMMARY"
           echo "=================================================="
-          
-          # Check if the file exists and print it
-          if [ -f "/home/runner/summary_all.txt" ]; then
-            cat /home/runner/summary_all.txt
-          else
-            echo "❌ No predictions were completed."
-          fi
+
+          # Loop through matrix jobs and get their outputs
+          {%- for job in needs.run_stock.result %}
+          echo "${{ job.outputs.summary }}"
+          {%- endfor %}
 
           echo "=================================================="
           echo "✅ Summary complete."
