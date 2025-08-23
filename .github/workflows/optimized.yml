@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        symbol: ['RELIANCE.NS', 'HDFCBANK.NS' ]
+        symbol: ['RELIANCE.NS', 'HDFCBANK.NS']
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -29,16 +29,21 @@ jobs:
         run: |
           echo "📈 Running prediction for ${{ matrix.symbol }}..."
           python pred_optimized.py ${{ matrix.symbol }} > output.txt || true
-          summary_line=$(grep -E "✅.*" output.txt || echo "❌ ${{ matrix.symbol }} failed or no summary")
-          echo "$summary_line" > summary.txt
+          
+          # Extract the ✅ summary line or fallback
+          summary_line=$(grep "✅ ${{ matrix.symbol }}" output.txt || echo "❌ ${{ matrix.symbol }} failed or no summary")
+          
+          # Save as .txt file for consistency
+          echo "$summary_line" > summary-${{ matrix.symbol }}.txt
+          
           echo "Summary for ${{ matrix.symbol }}:"
-          cat summary.txt
+          cat summary-${{ matrix.symbol }}.txt
 
       - name: Upload summary artifact
         uses: actions/upload-artifact@v4
         with:
-          name: summary-${{ matrix.symbol }}
-          path: summary.txt
+          name: summary-${{ matrix.symbol }}.txt
+          path: summary-${{ matrix.symbol }}.txt
 
   summary_report:
     needs: run_stock
@@ -55,6 +60,14 @@ jobs:
       - name: Display Combined Summary
         run: |
           echo "📊 Combined Stock Prediction Summary:"
-          for file in summaries/summary-*.txt; do
-            cat "$file"
-          done || echo "❌ No summaries found"
+          # Match .txt files
+          for file in summaries/summary-*/*.txt; do
+            if [ -f "$file" ]; then
+              cat "$file"
+            fi
+          done
+
+          # Fallback if no files
+          if ! compgen -G "summaries/summary-*/*.txt" > /dev/null; then
+            echo "❌ No summaries found"
+          fi
