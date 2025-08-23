@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        symbol: ['RELIANCE.NS', 'HDFCBANK.NS', 'ICICIBANK.NS', 'ITC.NS']
+        symbol: ['RELIANCE.NS', 'HDFCBANK.NS' ]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -29,20 +29,32 @@ jobs:
         run: |
           echo "📈 Running prediction for ${{ matrix.symbol }}..."
           python pred_optimized.py ${{ matrix.symbol }} > output.txt || true
-          # Extract summary line or fallback
           summary_line=$(grep -E "✅.*" output.txt || echo "❌ ${{ matrix.symbol }} failed or no summary")
+          echo "$summary_line" > summary.txt
           echo "Summary for ${{ matrix.symbol }}:"
-          echo "$summary_line"
-          echo "summary=$summary_line" >> $GITHUB_OUTPUT
+          cat summary.txt
+
+      - name: Upload summary artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: summary-${{ matrix.symbol }}
+          path: summary.txt
 
   summary_report:
     needs: run_stock
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Download all summary artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: summaries
+
       - name: Display Combined Summary
         run: |
           echo "📊 Combined Stock Prediction Summary:"
-          # Loop over all matrix jobs outputs dynamically
-          for job in $(jq -r '.jobs.run_stock.strategy.matrix.symbol[]' <<< '${{ toJson(needs.run_stock.outputs) }}'); do
-            echo "${{ needs.run_stock.outputs.summary }}"
-          done
+          for file in summaries/summary-*.txt; do
+            cat "$file"
+          done || echo "❌ No summaries found"
