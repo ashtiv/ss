@@ -108,7 +108,7 @@ def add_advanced_features(df, close_col, open_col, high_col, low_col, volume_col
     lower = df['SMA20'] - 2 * rolling_std * df['close']
     df['BB_upper'] = upper
     df['BB_lower'] = lower
-    df['BB_width'] = (upper - lower) / df['SMA20']
+    df['BB_width'] = (upper - lower) / (df['SMA20'] + 1e-6)
     df['BB_position'] = (df['close'] - lower) / (upper - lower + 1e-6)
     df['BB_squeeze'] = (df['BB_width'] < df['BB_width'].rolling(20).mean()).astype(int)
 
@@ -169,14 +169,11 @@ def add_advanced_features(df, close_col, open_col, high_col, low_col, volume_col
     return df
 
 # ---------------------------
-# Smarter Target: Volatility-Adaptive Threshold
+# NEW: Simple Up/Down Target
 # ---------------------------
-def create_target(close, window=20, factor=1.5):
-    returns = close.pct_change(1).shift(-1)
-    volatility = returns.rolling(window).std()
-    threshold = factor * volatility
-    target = (returns > threshold).astype(int)
-    return target
+def create_target(close):
+    """Predict next day's direction: 1 if up, 0 if down or flat"""
+    return (close.pct_change(1).shift(-1) > 0).astype(int)
 
 # ---------------------------
 # Smooth Target Encoder
@@ -260,23 +257,21 @@ def process_stock(symbol):
         # Nifty Market Factor
         df['nifty_return'] = 0.0
         nifty_data = yf.download(nifty_symbol, period='9y', interval='1d')
-        if isinstance(nifty_data.columns, pd.MultiIndex):
-            nifty_data.columns = [col[0] for col in nifty_data.columns]
-        nifty_close_col = 'Adj Close' if 'Adj Close' in nifty_data.columns else 'Close'
+        if not nifty_data.empty:
+            if isinstance(nifty_data.columns, pd.MultiIndex):
+                nifty_data.columns = [col[0] for col in nifty_data.columns]
+            nifty_close_col = 'Adj Close' if 'Adj Close' in nifty_data.columns else 'Close'
+            if nifty_close_col in nifty_data.columns:
+                nifty_rets = nifty_data[nifty_close_col].pct_change().reindex(df.index).fillna(0)
+                df['nifty_return'] = nifty_rets
 
-        if not nifty_data.empty and nifty_close_col in nifty_data.columns:
-            nifty_rets = nifty_data[nifty_close_col].pct_change().reindex(df.index).fillna(0)
-            df['nifty_return'] = nifty_rets
-        else:
-            df['nifty_return'] = 0.0
-
-        # Dynamic target
-        df['target'] = create_target(df['close'], window=20, factor=1.3)
+        # 🆕 Simple Up/Down Target
+        df['target'] = create_target(df['close'])
         df.dropna(inplace=True)
 
-        # Handle class imbalance
+        # Check for class imbalance (too few of one class)
         if df['target'].value_counts().min() < 10:
-            print("❌ Not enough minority class samples")
+            print("❌ Not enough samples in one class")
             return None
 
         # Smooth encode categorical features
@@ -366,7 +361,7 @@ def process_stock(symbol):
             val_results_list.append(fold_results)
 
         val_results = pd.concat(val_results_list, axis=0)
-        final_accuracy = accuracy_score(val_results['Actual'], val_results['Predicted'])
+        final_accuracy = accuracy_score(val_results['Actual'], val_results['Predicted'])  # ← Now: % correct direction
 
         # Predict next day
         latest_features = scaler.transform(X[feature_columns].iloc[-1:])
@@ -383,7 +378,8 @@ def process_stock(symbol):
 
         last_pred = val_results['Predicted'].iloc[-1]
 
-        print(f"✅ {symbol}: {direction} | Confidence: {confidence:.2f} | CV Accuracy: {final_accuracy:.4f} | Last Pred: {last_pred}")
+        print(f"✅ {symbol}: {direction} | Confidence: {confidence:.2f} | "
+              f"CV Accuracy: {final_accuracy:.4f} | Last Pred: {last_pred}")
 
         return {
             'symbol': symbol,
