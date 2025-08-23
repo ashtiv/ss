@@ -9,6 +9,8 @@ jobs:
     strategy:
       matrix:
         symbol: ['RELIANCE.NS', 'HDFCBANK.NS']
+    outputs:
+      summary-${{ matrix.symbol }}: ${{ steps.predict.outputs.summary }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -31,31 +33,18 @@ jobs:
           python your_stock_script.py ${{ matrix.symbol }} > output.txt || true
           # Extract summary line or fallback
           summary_line=$(grep -E "✅.*" output.txt || echo "❌ ${{ matrix.symbol }} failed or no summary")
-          echo "$summary_line" > summary.txt
           echo "Summary for ${{ matrix.symbol }}:"
-          cat summary.txt
-
-      - name: Upload summary artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: summary-${{ matrix.symbol }}
-          path: summary.txt
+          echo "$summary_line"
+          echo "summary=$summary_line" >> $GITHUB_OUTPUT
 
   summary_report:
     needs: run_stock
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Download all summaries
-        uses: actions/download-artifact@v4
-        with:
-          path: summaries
-
       - name: Display Combined Summary
         run: |
           echo "📊 Combined Stock Prediction Summary:"
-          for file in summaries/summary-*.txt; do
-            cat "$file"
-          done || echo "❌ No summaries found"
+          # Loop over all matrix job outputs
+          for job in ${!RUN_STOCK_*}; do
+            echo "${!job}"
+          done
