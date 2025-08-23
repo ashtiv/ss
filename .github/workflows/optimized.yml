@@ -8,9 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        symbol: ['RELIANCE.NS', 'HDFCBANK.NS']
-    outputs:
-      summary-${{ matrix.symbol }}: ${{ steps.predict.outputs.summary }}
+        symbol: ['RELIANCE.NS', 'HDFCBANK.NS', 'ICICIBANK.NS', 'ITC.NS']
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -44,7 +42,7 @@ jobs:
       - name: Display Combined Summary
         run: |
           echo "📊 Combined Stock Prediction Summary:"
-          # Loop over all matrix job outputs
-          for job in ${!RUN_STOCK_*}; do
-            echo "${!job}"
+          # Loop over all matrix jobs outputs dynamically
+          for job in $(jq -r '.jobs.run_stock.strategy.matrix.symbol[]' <<< '${{ toJson(needs.run_stock.outputs) }}'); do
+            echo "${{ needs.run_stock.outputs.summary }}"
           done
