@@ -1,0 +1,46 @@
+name: Stock Prediction Summary of Optimized
+
+on:
+  workflow_dispatch:   # Allows manual trigger
+
+jobs:
+  run_stock:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        symbol: ['RELIANCE.NS', 'HDFCBANK.NS', 'ICICIBANK.NS', 'ITC.NS']
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install yfinance pandas numpy scikit-learn lightgbm optuna
+
+      - name: Run stock prediction
+        id: predict
+        run: |
+          python pred_optimized.py ${{ matrix.symbol }} > output.txt
+          # Extract the summary line
+          summary_line=$(grep -E "✅.*" output.txt)
+          echo "summary=${summary_line}" >> $GITHUB_ENV
+
+      - name: Display summary
+        run: |
+          echo "Stock Prediction Summary for ${{ matrix.symbol }}:"
+          echo "${{ env.summary }}"
+
+  summary_report:
+    needs: run_stock
+    runs-on: ubuntu-latest
+    steps:
+      - name: Display Combined Summary
+        run: |
+          echo "All individual stock predictions finished."
+          echo "Check each job for its summary line."
