@@ -1,41 +1,26 @@
-name: Stock Prediction Summary Optimized
+name: Stock Prediction optimised
 
 on:
-  workflow_dispatch:
+  workflow_dispatch:   # Manual trigger
 
 jobs:
-  run_stock:
+  run_stock_predictions:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false   # ✅ Don't stop other jobs if one fails
-      matrix:
-        symbol: ['RELIANCE.NS', 'HDFCBANK.NS', 'ICICIBANK.NS', 'ITC.NS', 'ETERNAL.NS', 'ADANIPORTS.NS', 'ADANIPOWER.NS', 'DLF.NS', 'SBILIFE.NS', 'VBL.NS', 'PFC.NS', 'RECLTD.NS', 'ADANIENSOL.NS', 'INDIANB.NS', 'SUZLON.NS', 'ABCAPITAL.NS', 'LLOYDSME.NS', 'FORTIS.NS', 'PRESTIGE.NS', 'GVT&D.NS', 'PATANJALI.NS', 'MFSL.NS', 'MOTILALOFS.NS', 'KALYANKJIL.NS', 'ITCHOTELS.NS', 'HEXT.NS', '360ONE.NS', 'COHANCE.NS', 'ASTERDM.NS', 'KIMS.NS', 'PPLPHARMA.NS', 'BRIGADE.NS', 'WELCORP.NS', 'TIMKEN.NS', 'CHALET.NS', 'AADHARHFC.NS', 'SAGILITY.NS', 'ONESOURCE.NS', 'PNBHOUSING.NS', 'KARURVYSYA.NS', 'CROMPTON.NS', 'ABREL.NS', 'BIKAJI.NS', 'SAILIFE.NS', 'ANANTRAJ.NS', 'CGCL.NS', 'TECHNOE.NS', 'VENTIVE.NS', 'RATNAMANI.NS', 'TRITURBINE.NS', 'RAINBOW.NS', 'SIGNATURE.NS', 'TBOTEK.NS', 'AFCONS.NS', 'ATHERENERG.NS', 'DOMS.NS', 'TARIL.NS', 'ABDL.NS', 'THELEELA.NS', 'KIRLOSENG.NS', 'RRKABEL.NS', 'LEMONTREE.NS', 'JINDALSAW.NS', 'GRAVITA.NS', 'CELLO.NS', 'ALIVUS.NS', 'BALRAMCHIN.NS', 'TITAGARH.NS', 'GRANULES.NS', 'AZAD.NS', 'AETHER.NS', 'BIRLACORPN.NS', 'WABAG.NS', 'MEDPLUS.NS', 'INDIASHLTR.NS', 'ASTRAMICRO.NS', 'JLHL.NS', 'TCI.NS', 'BECTORFOOD.NS', 'KIRLPNU.NS', 'RUSTOMJEE.NS', 'DODLA.NS', 'ARVIND.NS', 'EPL.NS', 'AKUMS.NS', 'MAXESTATES.NS', 'CSBBANK.NS', 'CHEMPLASTS.NS', 'ARVINDFASN.NS', 'MOIL.NS', 'JUNIPER.NS', 'AVL.NS', 'THANGAMAYL.NS', 'KTKBANK.NS', 'GULFOILLUB.NS', 'BANSALWIRE.NS', 'SUNTECK.NS', 'MASFIN.NS', 'SIS.NS', 'FEDFINA.NS', 'EMIL.NS', 'JKIL.NS', 'BALAMINES.NS', 'VRLLOG.NS', 'SAMHI.NS', 'AWFIS.NS', 'WONDERLA.NS', 'ORCHPHARMA.NS', 'MEDIASSIST.NS', 'DCBBANK.NS', 'NEOGEN.NS', 'GOCOLORS.NS', 'KOLTEPATIL.NS', 'EPACK.NS', 'ROSSARI.NS', 'GATEWAY.NS', 'FLAIR.NS', 'BAJAJCON.NS', 'JTLIND.NS', 'ARVSMART.NS', 'VENUSPIPES.NS', 'MOLDTKPAC.NS', 'KRSNAA.NS', 'YATRA.NS', 'STOVEKRAFT.NS', 'LAXMIDENTL.NS', 'UDS.NS']
 
     steps:
-      - name: Checkout repository
+      - name: Checkout repo
         uses: actions/checkout@v3
 
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.11'
+          python-version: '3.10'
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install yfinance pandas numpy scikit-learn lightgbm optuna
+          pip install yfinance scikit-learn lightgbm tabulate numpy pandas
 
-      - name: Run stock prediction & capture summary
+      - name: Run stock prediction
         run: |
-          set +e  # ✅ Allow script to continue even if python fails
-          output=$(python pred_optimized.py ${{ matrix.symbol }} 2>&1)
-          status=$?
-          set -e
-
-          if [ $status -eq 0 ]; then
-            summary=$(echo "$output" | grep "✅ ${{ matrix.symbol }}" || echo "✅ ${{ matrix.symbol }} ran but no summary")
-          else
-            summary="❌ ${{ matrix.symbol }} failed"
-          fi
-
-          echo "### $summary" >> $GITHUB_STEP_SUMMARY
+          python pred_optimized.py
