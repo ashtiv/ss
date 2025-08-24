@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        symbol: ['RELIANCE.NS', 'HDFCBANK.NS', 'ICICIBANK.NS', 'ITC.NS']  # Keep small for testing
+        symbol: ['RELIANCE.NS', 'HDFCBANK.NS']  # Keep small for testing
 
     outputs:
       summary: ${{ steps.predict.outputs.summary }}
