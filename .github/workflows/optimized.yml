@@ -2,31 +2,14 @@ name: Stock Prediction Summary Optimized
 
 on:
   workflow_dispatch:
-    inputs:
-      symbols:
-        description: 'Comma-separated list of stock symbols'
-        required: true
-        default: 'RELIANCE.NS,HDFCBANK.NS'
 
 jobs:
-  setup:
-    runs-on: ubuntu-latest
-    outputs:
-      symbols: ${{ steps.set-symbols.outputs.symbols }}
-    steps:
-      - name: Set symbols array
-        id: set-symbols
-        run: |
-          # Convert comma-separated string to JSON array
-          symbols_array=$(echo '["'${{ github.event.inputs.symbols }}'"]' | sed 's/,/","/g')
-          echo "symbols=$symbols_array" >> $GITHUB_OUTPUT
-
   run_stock:
-    needs: setup
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        symbol: ${{ fromJson(needs.setup.outputs.symbols) }}
+        symbol: ['RELIANCE.NS', 'HDFCBANK.NS' ]  # Add more as needed
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -38,48 +21,11 @@ jobs:
 
       - name: Install dependencies
         run: |
+          python -m pip install --upgrade pip
           pip install yfinance pandas numpy scikit-learn lightgbm optuna
 
-      - name: Run stock prediction
-        id: predict
-        continue-on-error: true
+      - name: Run stock prediction & show summary
         run: |
-          echo "📈 Running prediction for ${{ matrix.symbol }}..."
           output=$(python pred_optimized.py ${{ matrix.symbol }} 2>&1)
           summary=$(echo "$output" | grep "✅ ${{ matrix.symbol }}" || echo "❌ ${{ matrix.symbol }} failed or no data")
-          echo "📋 Result: $summary"
-          echo "summary=$summary" >> $GITHUB_OUTPUT
-
-      - name: Save result to file
-        run: |
-          echo "${{ steps.predict.outputs.summary }}" > result_${{ matrix.symbol }}.txt
-
-      - name: Upload result file
-        uses: actions/upload-artifact@v3
-        with:
-          name: result-${{ matrix.symbol }}
-          path: result_${{ matrix.symbol }}.txt
-
-  summary_report:
-    needs: [setup, run_stock]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download all results
-        uses: actions/download-artifact@v3
-        with:
-          path: artifacts
-          pattern: result-*
-          merge-multiple: true
-
-      - name: Display Combined Summary
-        run: |
-          echo "=================================================="
-          echo "📊 FINAL COMBINED STOCK PREDICTION SUMMARY"
-          echo "=================================================="
-          # Read all result files and display their contents
-          for file in artifacts/result_*.txt; do
-            if [ -f "$file" ]; then
-              cat "$file"
-            fi
-          done
-          echo "=================================================="
+          echo "$summary"
