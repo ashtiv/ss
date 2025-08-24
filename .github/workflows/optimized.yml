@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        symbol: ['RELIANCE.NS', 'HDFCBANK.NS', 'ICICIBANK.NS', 'ITC.NS']  # Test with small list first
+        symbol: ['RELIANCE.NS', 'HDFCBANK.NS', 'ICICIBANK.NS', 'ITC.NS']  # Keep small for testing
 
     outputs:
       summary: ${{ steps.predict.outputs.summary }}
@@ -34,11 +34,13 @@ jobs:
           echo "📈 Running prediction for ${{ matrix.symbol }}..."
           output=$(python pred_optimized.py ${{ matrix.symbol }} 2>&1)
           summary=$(echo "$output" | grep "✅ ${{ matrix.symbol }}" || echo "❌ ${{ matrix.symbol }} failed or no data")
-          echo "Prediction result: $summary"
-          echo "::set-output name=summary::$summary"
+          echo "📋 Result: $summary"
+
+          # ✅ Correct way: Use GITHUB_OUTPUT
+          echo "summary=$summary" >> $GITHUB_OUTPUT
 
   summary_report:
-    needs: run_stock
+    needs: [run_stock]
     runs-on: ubuntu-latest
     steps:
       - name: Display Combined Summary
@@ -47,10 +49,12 @@ jobs:
           echo "📊 FINAL COMBINED STOCK PREDICTION SUMMARY"
           echo "=================================================="
 
-          # Loop through matrix jobs and get their outputs
-          {%- for job in needs.run_stock.result %}
+          # ✅ Safely access each job's output
+          {
+          {% for job in needs.run_stock.results %}
           echo "${{ job.outputs.summary }}"
-          {%- endfor %}
+          {% endfor %}
+          } | sort
 
           echo "=================================================="
           echo "✅ Summary complete."
